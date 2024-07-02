@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="boardMapper" >
+
+	<sql id="selectBoard">
+	SELECT
+		BOARD_NO boardNo,
+	    BOARD_TITLE boardTitle,
+	    BOARD_CONTENT boardContent,
+	    BOARD_WRITER boardWriter,
+	    COUNT count,
+	    CREATE_DATE createDate,
+	    ORIGIN_NAME originName,
+	    CHANGE_NAME changeName
+	
+	</sql>
+
+	<!-- select는 반환값 꼭 있음 -->
+	<select id ="boardCount" resultType="_int"> 
+		SELECT
+			COUNT(BOARD_NO)
+		FROM
+			BOARD
+		WHERE
+			STATUS = 'Y'
+	</select>
+
+	
+	<select id = "findAll"  resultType="board" parameterType ="map"> 
+		<include refid="selectBoard"/>
+FROM
+    (SELECT 
+        BOARD_NO,
+        BOARD_TITLE,
+        BOARD_WRITER,
+        BOARD_CONTENT, 
+        COUNT,
+        CREATE_DATE,
+        ORIGIN_NAME,
+        CHANGE_NAME,
+        ROWNUM RNUM
+    FROM
+        (SELECT 
+            BOARD_NO,
+            BOARD_TITLE,
+            BOARD_WRITER,
+            BOARD_CONTENT,
+            COUNT,
+            CREATE_DATE,
+            ORIGIN_NAME,
+            CHANGE_NAME
+        FROM
+            BOARD
+        WHERE
+            STATUS = 'Y'
+        ORDER
+            BY
+            BOARD_NO DESC ))
+WHERE
+    RNUM BETWEEN #{startValue} AND #{endValue}
+	
+	</select>
+	
+	<select id ="searchCount" parameterType="hashmap" resultType="int"> 
+		SELECT
+			COUNT(BOARD_NO)
+		FROM
+			BOARD
+		WHERE
+			STATUS = 'Y'
+		<if test="condition=='writer'">
+			AND
+	    		BOARD_WRITER
+		</if>
+		<if test="condition=='title'">
+			AND
+	    		BOARD_TITLE
+		</if>
+		<if test="condition=='content'">
+			AND
+	    		BOARD_CONTENT
+    	</if>
+    		LIKE '%'|| #{keyword}  ||  '%'
+	</select>
+	
+	
+	<select id="findByConditionAndKetword" parameterType="hashmap" resultType="board">
+	
+	<include refid="selectBoard"/>
+	FROM
+			BOARD
+	WHERE
+		STATUS='Y'
+		
+	<choose>
+		<when test = "condition == 'writer'">
+			AND BOARD_WRITER
+		</when>
+		<when test = "condition == 'title'">
+			AND BOATD_TITLE
+		</when>
+		<otherwise>
+			AND BOATD_CONTENT
+		</otherwise>
+	
+	</choose>	
+	LIKE '%'|| #{keyword}  ||  '%'
+	ODERBY
+		BOARD_NO DESC
+	    
+	</select>
+	
+	
+	<insert id = "insert" parameterType="board" >
+		INSERT
+		INTO
+			BOARD
+			(
+			BOARD_NO,
+            BOARD_TITLE,
+            BOARD_WRITER,
+            BOARD_CONTENT,
+            CHANGE_NAME,
+            ORIGIN_NAME
+			)
+		VALUES
+			(
+			SEQ_BNO.NEXTVAL,
+			#{boardTitle },
+			#{boardWriter},
+			#{boardContent },
+			#{changeName},
+			#{originName}
+			)
+
+	
+	</insert>
+	
+	
+	<update id="increaseCount" parameterType="_int">
+		UPDATE
+			BOARD
+		SET
+			COUNT= COUNT+1 
+		WHERE
+			BOARD_NO = #{boardNo}
+		AND
+			STATUS = 'Y'
+	</update>
+	
+	<select id="findById" parameterType="_int" resultType="board">
+		<include refid="selectBoard"/>
+		FROM
+			BOARD
+		WHERE
+			BOARD_NO = #{boardNo}
+	</select>
+	
+	<update id="delete" parameterType="_int">
+		UPDATE
+			BOARD
+		SET	
+			STATUS = 'N'
+		WHERE
+			BOARD_NO = #{boardNo}
+	
+	</update>
+	
+	<update id="update" parameterType="board">
+		UPDATE
+			BOARD
+		SET
+			BOARD_TITLE = #{boardTitle},
+	    	BOARD_CONTENT= #{boardContent},
+	    	ORIGIN_NAME = #{originName},
+	    	CHANGE_NAME = #{changeName}
+		WHERE
+			BOARD_NO = #{boardNo}
+	
+	</update>
+	
+	<select id="selectImg" resultType="board">
+	SELECT 
+    	CHANGE_NAME   changeName,
+    	BOARD_TITLE   boardTitle,
+    	USER_NAME     boardWriter,
+    	BOARD_CONTENT boardContent,
+    	CREATE_DATE   createDate
+	FROM
+	    BOARD, MEMBER
+	WHERE
+	    BOARD.BOARD_WRITER = MEMBER.USER_ID
+	AND
+	    CHANGE_NAME IS NOT NULL
+	AND 
+		BOARD.STATUS = 'Y'
+	ORDER
+	BY
+	    BOARD_NO DESC
+	</select>
+	
+	<select id="selectReply" resultType="reply" parameterType="_int">
+		SELECT
+			REPLY_NO replyNo,
+			REPLY_CONTENT replyContent,
+			REPLY_WRITER replyWriter,
+			TO_CHAR(CREATE_DATE, 'YYYY-MM-DD') AS "createDate"
+		FROM
+			REPLY
+		WHERE
+			STATUS ='Y'	
+		AND
+			REF_BNO = #{boardNo}
+		ORDER BY
+			REPLY_NO DESC
+	
+	</select>
+	
+	<select id="insertReply" parameterType="reply">
+		INSERT
+			INTO
+				REPLY
+				(
+				REPLY_NO ,
+				REPLY_CONTENT ,
+				REPLY_WRITER ,
+				REF_BNO
+				)
+			VALUES
+				(
+				SEQ_RNO.NEXTVAL,
+				#{replyContent},
+				#{replyWriter},
+				#{refBoardNo}
+				)
+	
+	</select>
+	
+	
+	<resultMap type="board" id="boardResultMap">                
+	
+		<id 	column="BOARD_NO" 		property="boardNo"/>
+		<result column="BOARD_TITLE" 	property="boardTitle"/>
+		<result column="BOARD_CONTENT"  property="boardContent"/>
+		<result column="BOARD_WRITER"   property="boardWriter"/>
+		<result column="COUNT" 			property="count"/>
+		<result column="ORIGIN_NAME"    property="originName"/>
+		<result column="CHANGE_NAME"    property="changeName"/>
+		<result column="B_CREATE_DATE"  property="createDate"/>
+		
+		<collection resultMap = "replyResultSet" property="replyList"/>
+	</resultMap>
+	
+	
+	<resultMap type="reply" id="replyResultSet">
+	
+		<id 	column="REPLY_NO" 		property="replyNo"/>
+		<result column="REPLY_CONTENT" 	property="replyContent"/>
+		<result column="REPLY_WRITER" 	property="replyWriter"/>
+		<result column="R_CREATE_DATE" 	property="createDate"/>
+		<result column="REF_BNO" 		property="refBoardNo"/>
+		
+	</resultMap>
+	
+	
+	<select id="boardAndReply" parameterType="_int" resultMap="boardResultMap">
+		
+		SELECT
+			BOARD_NO,
+            BOARD_TITLE,
+            BOARD_WRITER,
+            COUNT,
+            CHANGE_NAME,
+            ORIGIN_NAME,
+            REPLY_NO ,
+			REPLY_CONTENT,
+			REPLY_WRITER,
+			REF_BNO,
+			BOARD.CREATE_DATE B_CREATE_DATE,
+			REPLY.CREATE_DATE R_CREATE_DATE
+		FROM
+			BOARD
+		LEFT
+		JOIN
+			REPLY ON(BOARD_NO = REF_BNO)
+		WHERE
+			BOARD_NO=#{BoardNo}
+	</select>
+	
+	
+	<select id="findTopBoard" resultType="board">
+		<include refid= "selectBoard"/>
+		
+	FROM (
+		SELECT
+			BOARD_NO,
+            BOARD_TITLE,
+            BOARD_WRITER,
+            BOARD_CONTENT,
+            COUNT,
+            CHANGE_NAME,
+            ORIGIN_NAME,
+            CREATE_DATE
+         FROM  
+            BOARD
+        ORDER
+    	BY
+        COUNT DESC)
+            
+        WHERE ROWNUM BETWEEN 1 AND 5 
+	
+	
+	</select>
+	
+
+</mapper>

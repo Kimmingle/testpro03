@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="memberMapper" >
+
+	<!-- 로그인용 쿼리문 -->
+	<select id = "login" parameterType="member" resultType="member"> <!-- mapper에 별칭 member로 했었음 -->
+		SELECT
+				USER_ID userId,
+				USER_PWD userPwd,
+				USER_NAME userName,
+				EMAIL,
+				GENDER,
+				AGE,
+				PHONE,
+				ADDRESS,
+				ENROLL_DATE enrollDate,
+				MODIFY_DATE modifyDate,
+				STATUS
+			FROM
+				MEMBER
+			WHERE
+				USER_ID = #{userId}
+			AND  <!--  
+				USER_PWD = #{userPwd}
+			AND -->
+				STATUS = 'Y'
+	<!--  #{userId}: 자바에서는 캡슐화로 해놔서 #{userId} 쓸 수 없지만 mybatis에서는 #{userId}로 하나의 값만 검색할 수 있음(단 getter존재할것)-->
+	<!-- 원래는 데이터 하나만(컬럼 하나)만 들고갈 수 있는데 위처럼 11개의 데이터를 가져갈 수 있도록 해주는게 mybatis -->
+	<!-- ORM..? -->
+	</select>
+
+	<insert id="insert" parameterType="member">
+
+		INSERT
+		  INTO
+		  		MEMBER
+		  		(
+		  		USER_ID, 
+		  		USER_PWD,
+		  		USER_NAME,
+		  		EMAIL,
+		  		GENDER,
+		  		AGE,
+				PHONE,
+				ADDRESS
+		  		)
+		  VALUES
+		  		(
+		  		#{userId},
+		  		#{userPwd},
+		  		#{userName},
+		  		#{email},
+		  		#{gender},
+		  		#{age},
+		  		#{phone},
+		  		#{address}
+		  		)
+	</insert>
+
+	<update id="update" parameterType="member">
+			UPDATE
+				MEMBER
+			SET
+				USER_NAME = #{userName},
+			  	EMAIL = #{email},
+			  	AGE = #{age},
+				PHONE = #{phone},
+				ADDRESS = #{address},
+				GENDER = #{gender},
+				MODIFY_DATE = SYSDATE
+			WHERE
+				USER_ID =#{userId}
+
+
+	</update>
+
+	<delete id="delete">
+	UPDATE
+			MEMBER
+		SET
+			STATUS = 'N',
+			MODIFY_DATE = SYSDATE
+		WHERE
+			USER_ID = #{userId}
+	</delete>
+	
+	
+	
+	<select id="idCheck" parameterType="string" resultType="_int">
+		SELECT 
+			COUNT(*)
+		FROM
+			MEMBER
+		WHERE
+			USER_ID = #{checkId}
+	
+	
+	</select>
+	
+	
+	
+</mapper>
+
+	
+
+

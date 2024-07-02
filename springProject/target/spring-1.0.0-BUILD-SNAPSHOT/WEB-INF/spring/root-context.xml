@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	
+	<!-- root-context.xml
+	서버구동과 동기에 web.xml파일을 거쳐서 바로 로딩되는 문서
+	bean접속정보, 트렌젝션 처리, 외부모듈연결 등등
+	
+	 -->
+	 
+	 <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource" destroy-method="close">
+	 	<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"></property>
+	 	<property name="url" value="jdbc:oracle:thin:@localhost:1521:xe"></property>
+	 	<property name="username" value="system"></property>
+	 	<property name="password" value="1234"></property>
+	 	
+	 </bean>
+	 
+	 <!-- 
+	 객체가 필요할때 내부적으로 실행되는 코드
+
+	basicDataSource dataSource = new BasicDataSource();
+		  
+		  
+	-->
+		
+	<bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+		<property name="dataSource" ref="dataSource"></property>
+	
+	</bean>	
+	
+	<bean class="org.mybatis.spring.SqlSessionTemplate" id="sqlSessionTemplate" >
+		<constructor-arg ref="sqlSessionFactory"/>  <!-- 기본생성자 없기때문에 매개변수 넣어줘야함 -->
+	
+	</bean>
+	
+	
+	<!-- 파일 업로드 관연 빈 등록 -->
+	<bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+		<property name="maxUploadSize" value="100000000"/>
+		<property name="maxInMemorySize" value="100000000"/>
+	</bean>
+	
+	
+	<mybatis-spring:scan base-package="com.kh.spring.noticeApi.model.dao"/>
+	
+	
+	
+	
+	
+				
+</beans>

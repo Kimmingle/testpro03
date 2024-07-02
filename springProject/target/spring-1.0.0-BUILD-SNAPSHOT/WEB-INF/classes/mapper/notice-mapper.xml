@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="noticeMapper" >
+
+	<sql id="selectNotice">
+	SELECT
+		NOTICE_NO noticeNo,
+	    NOTICE_TITLE noticeTitle,
+	    NOTICE_CONTENT noticeContent,
+	    NOTICE_WRITER noticeWriter,
+	    CREATE_DATE createDate
+	
+	</sql>
+
+	<!-- select는 반환값 꼭 있음 -->
+	<select id ="noticeCount" resultType="_int"> 
+		SELECT
+			COUNT(NOTICE_NO)
+		FROM
+			NOTICE
+		
+	</select>
+
+	
+	<select id = "findAll"  resultType="notice" parameterType ="map"> 
+		<include refid="selectNotice"/>
+FROM
+    (SELECT 
+        NOTICE_NO,
+        NOTICE_TITLE,
+        NOTICE_WRITER,
+        NOTICE_CONTENT, 
+        CREATE_DATE,
+        ROWNUM RNUM
+    FROM
+        (SELECT 
+            NOTICE_NO,
+            NOTICE_TITLE,
+            NOTICE_WRITER,
+            NOTICE_CONTENT,
+            CREATE_DATE
+        FROM
+            NOTICE
+        ORDER
+            BY
+            NOTICE_NO DESC ))
+WHERE
+    RNUM BETWEEN #{startValue} AND #{endValue}
+	
+	</select>
+	
+	<select id ="searchCount" parameterType="hashmap" resultType="int"> 
+		SELECT
+			COUNT(NOTICE_NO)
+		FROM
+			NOTICE
+		<if test="condition=='writer'">
+			AND
+	    		NOTICE_WRITER
+		</if>
+		<if test="condition=='title'">
+			AND
+	    		NOTICE_TITLE
+		</if>
+		<if test="condition=='content'">
+			AND
+	    		NOTICE_CONTENT
+    	</if>
+    		LIKE '%'|| #{keyword}  ||  '%'
+	</select>
+	
+	
+	<select id="findByConditionAndKetword" parameterType="hashmap" resultType="notice">
+	
+	<include refid="selectNotice"/>
+	FROM
+			NOTICE
+		
+	<choose>
+		<when test = "condition == 'writer'">
+			AND NOTICE_WRITER
+		</when>
+		<when test = "condition == 'title'">
+			AND NOTICE_TITLE
+		</when>
+		<otherwise>
+			AND NOTICE_CONTENT
+		</otherwise>
+	
+	</choose>	
+	LIKE '%'|| #{keyword}  ||  '%'
+	ODERBY
+		NOTICE_NO DESC
+	    
+	</select>
+	
+	<insert id = "insertNoti" parameterType="notice" >
+		INSERT
+		INTO
+			NOTICE
+			(
+			NOTICE_NO,
+            NOTICE_TITLE,
+            NOTICE_WRITER,
+            NOTICE_CONTENT
+			)
+		VALUES
+			(
+			SEQ_NNO.NEXTVAL,
+			#{noticeTitle },
+			#{noticeWriter},
+			#{noticeContent }
+			)
+
+
+	</insert>
+	
+
+</mapper>
