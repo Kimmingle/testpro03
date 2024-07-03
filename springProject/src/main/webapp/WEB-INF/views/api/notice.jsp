@@ -50,6 +50,26 @@
 		line-height: 50px;
 		border : 1px solid rgba(255, 255, 255, 0.656);
 	}
+	
+	.rating__input {
+	display: none; /* 라디오버튼 hide */
+	}
+
+	.rating__label .star-icon {
+	width: 24px;
+	height: 24px;
+	display: block;
+	background-image: url("../images/ico-star-empty.svg");
+	background-repeat: no-repeat;
+}
+
+.rating__label--full .star-icon {
+	background-position: right;
+}
+.rating__label--half .star-icon {
+	background-position: left;
+}
+	
 
 </style>
 </head>

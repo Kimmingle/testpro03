@@ -6,7 +6,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.kh.api.model.vo.AirVO;
 
 public class ApiJavaApp {
@@ -23,13 +28,14 @@ public class ApiJavaApp {
 		
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty");
+		//sb.append("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty");
+		sb.append("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty");
 		sb.append("?serviceKey=");
 		sb.append(SERVICE_KEY);
 		sb.append("&sidoName="); 
 		sb.append(URLEncoder.encode("서울", "UTF-8")); 
-		sb.append("&returnType=");
-		sb.append(URLEncoder);
+		sb.append("&returnType=json");
+		//sb.append(URLEncoder);
 		//필수요소 두개
 		
 		
@@ -84,8 +90,9 @@ public class ApiJavaApp {
 		String responseJson = br.readLine();
 		
 		
-		AirVO air = new AirVO();
-		air.setKhaiValue("");
+//		AirVO air = new AirVO();
+//		air.setKhaiValue("");
+		//문자열데이터를 json
 		
 		//라이브러리
 		//JsonObject, JsonArray : json을 자바데이터로 바꾸는것 
@@ -94,6 +101,59 @@ public class ApiJavaApp {
 		//
 		//JsonObject, JsonArray : 자바 데이터를 json으로 바꾸는것  (JSON라이브러리)
 		
+		JsonObject jsonObj = JsonParser.parseString(responseJson).getAsJsonObject();//우리가 파싱하고싶은 문자열 데이너 넣어줌
+		
+		//System.out.println(responseJson); 
+		//System.out.println("---");
+		//System.out.println(jsonObj);   //두개 결과 같음-오ㅐ?
+		
+		
+		JsonObject responseObj = jsonObj.getAsJsonObject("response"); 
+		//System.out.println("---");
+		//System.out.println(responseObj);
+		
+		JsonObject bodyObj = responseObj.getAsJsonObject("body");
+		
+		//tptal40을 뽑아쓰고싶은데 뭘로 써야할까 byte, short, int, long
+		int totalCount = bodyObj.get("totalCount").getAsInt();
+		
+		JsonArray items = bodyObj.getAsJsonArray("items");
+		//System.out.println(items);
+		
+		
+		
+		
+		//air객체의 필드에 값을 하나하나 담음
+		
+		List<AirVO> list = new ArrayList();
+		
+		for(int i =0; i<items.size(); i++) {
+			
+			JsonObject item = items.get(i).getAsJsonObject();
+			
+			AirVO air = new AirVO();
+			
+			air.setPm10Value(item.get("pmValue").getAsString());
+			air.setPm10Value(item.get("pmValue").getAsString());
+			air.setPm10Value(item.get("pmValue").getAsString());
+			air.setPm10Value(item.get("pmValue").getAsString());
+			air.setPm10Value(item.get("pmValue").getAsString());
+			air.setPm10Value(item.get("pmValue").getAsString());
+			
+			list.add(air);
 		}
+		
+		for(AirVO air : list) {
+			System.out.println(air);
+			
+		}
+			
+		br.close();
+		urlConnection.disconnect();
+		
+		
+		}
+	
+	
 
 }
